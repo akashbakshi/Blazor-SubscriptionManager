@@ -21,9 +21,9 @@ namespace SubscriptionManagerBlazor.Server.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<Subscription> Get()
+        public IActionResult GetAll()
         {
-            return _dbContext.Subscriptions.ToList();
+            return Ok(_dbContext.Subscriptions.ToList());
         }
 
         [HttpGet("{id}")]
@@ -39,7 +39,7 @@ namespace SubscriptionManagerBlazor.Server.Controllers
 
 
         [HttpPost]
-        public IActionResult Post([FromBody] Subscription subscription)
+        public IActionResult Create([FromBody] Subscription subscription)
         {
             subscription.DateCreated = DateTime.UtcNow;
             _dbContext.Subscriptions.Add(subscription);
@@ -49,7 +49,7 @@ namespace SubscriptionManagerBlazor.Server.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] Subscription updatedSubscription)
+        public IActionResult Update(int id, [FromBody] Subscription updatedSubscription)
         {
             var subscriptionToUpdate = _dbContext.Subscriptions.Find(id);
             if (subscriptionToUpdate == null)
