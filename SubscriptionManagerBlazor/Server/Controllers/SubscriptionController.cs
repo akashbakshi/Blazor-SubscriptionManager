@@ -10,45 +10,83 @@ using SubscriptionManagerBlazor.Shared;
 
 namespace SubscriptionManagerBlazor.Server.Controllers
 {
-    [Route("api/sub")]
+    [Route("api/[controller]")]
     [ApiController]
     public class SubscriptionController : ControllerBase
     {
-        SubscriptionDataAccessLayer _dal;
-        public SubscriptionController(SubscriptionDataAccessLayer dal)
+        private ApplicationDbContext _dbContext;
+        public SubscriptionController(ApplicationDbContext dbContext)
         {
-            _dal = dal;
+            _dbContext = dbContext;
         }
-        // GET: api/<SubscriptionController>
+
         [HttpGet]
         public IEnumerable<Subscription> Get()
         {
-            return _dal.Get();
+            return _dbContext.Subscriptions.ToList();
         }
 
-        // GET api/<SubscriptionController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public IActionResult Get(int id)
         {
-            return "value";
+            var subscriptionToFind = _dbContext.Subscriptions.Find(id);
+
+            if (subscriptionToFind == null)
+                return BadRequest("No Subscription Exists with Id: " + id);
+
+            return Ok(subscriptionToFind);
         }
 
-        // POST api/<SubscriptionController>
+
         [HttpPost]
-        public void Post([FromBody] string value)
+        public IActionResult Post([FromBody] Subscription subscription)
         {
+            subscription.DateCreated = DateTime.UtcNow;
+            _dbContext.Subscriptions.Add(subscription);
+            _dbContext.SaveChanges();
+
+            return Ok(subscription);
         }
 
-        // PUT api/<SubscriptionController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public IActionResult Put(int id, [FromBody] Subscription updatedSubscription)
         {
+            var subscriptionToUpdate = _dbContext.Subscriptions.Find(id);
+            if (subscriptionToUpdate == null)
+                return BadRequest("No Subscription Exists with Id: "+id);
+
+            if (subscriptionToUpdate.Name != null || subscriptionToUpdate.Name != updatedSubscription.Name)
+                subscriptionToUpdate.Name = updatedSubscription.Name;
+
+            if (subscriptionToUpdate.Company != null || subscriptionToUpdate.Company != updatedSubscription.Company)
+                subscriptionToUpdate.Company = updatedSubscription.Company;
+
+            if (subscriptionToUpdate.Price != updatedSubscription.Price)
+                subscriptionToUpdate.Price = updatedSubscription.Price;
+
+
+            if (subscriptionToUpdate.RenewalDay != updatedSubscription.RenewalDay)
+                subscriptionToUpdate.RenewalDay = updatedSubscription.RenewalDay;
+
+
+            _dbContext.Subscriptions.Update(subscriptionToUpdate);
+            _dbContext.SaveChanges();
+
+            return Ok();
         }
 
-        // DELETE api/<SubscriptionController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
+            var subscriptionToDelete = _dbContext.Subscriptions.Find(id);
+
+            if (subscriptionToDelete == null)
+                return BadRequest("No Subscription Exists with Id: " + id);
+
+            _dbContext.Subscriptions.Remove(subscriptionToDelete);
+            _dbContext.SaveChanges();
+
+            return Ok();
         }
     }
 }

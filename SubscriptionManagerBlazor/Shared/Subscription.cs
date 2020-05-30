@@ -9,8 +9,8 @@ namespace SubscriptionManagerBlazor.Shared
     {
 
         public int Id { get; set; }
-        public int Name { get; set; }
-        public int Company { get; set; }
+        public string Name { get; set; }
+        public string Company { get; set; }
         public double Price { get; set; }
 
         public DateTime DateCreated { get; set; }
