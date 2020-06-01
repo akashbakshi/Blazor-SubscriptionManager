@@ -41,12 +41,13 @@ namespace SubscriptionManagerBlazor.Server.Controllers
         [HttpPost]
         public IActionResult Create([FromBody] Subscription subscription)
         {
-            subscription.DateCreated = DateTime.UtcNow;
             _dbContext.Subscriptions.Add(subscription);
             _dbContext.SaveChanges();
 
             return Ok(subscription);
         }
+
+    
 
         [HttpPut("{id}")]
         public IActionResult Update(int id, [FromBody] Subscription updatedSubscription)

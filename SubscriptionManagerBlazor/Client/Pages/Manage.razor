@@ -1,7 +1,122 @@
 ﻿@page "/manage"
 
+@using SubscriptionManagerBlazor.Shared
+
+@inject HttpClient Http
+<!--TODO: Add code to invoke toast-->
+
+
+@if (response != null)
+{
+    if (response.IsSuccessStatusCode)
+    {
+        <div class="toast" role="alert" aria-live="polite" aria-atomic="true" data-delay="10000">
+            <div role="alert" aria-live="assertive" aria-atomic="true">
+
+                Successfully Added Subscription!
+            </div>
+        </div>
+
+    }
+    else
+    {
+        <div class="toast" role="alert" aria-live="polite" aria-atomic="true" data-delay="10000">
+            <div role="alert" aria-live="assertive" aria-atomic="true">
+                Failed to add Subscription!
+            </div>
+        </div>
+    }
+
+}
+
 <h3>Manage</h3>
+
+<div class="container my-3">
+    @if(allSubscriptions == null)
+    {
+        <em>Loading...</em>
+    }
+    else { 
+        <button class="btn btn-success my-2" onclick="getElementById('addform').hidden=false">New Subscription</button>
+        <table class="table table-responsive-lg">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Subscription Name</th>
+                    <th>Company</th>
+                    <th>Price</th>
+                    <th>Renews On</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var sub in allSubscriptions)
+                {
+                <tr>
+                    <td>  @sub.Name</td>
+                    <td>  @sub.Company</td>
+                    <td>  @sub.Price</td>
+                    <td>  @(sub.RenewalDay)th Of The Month</td>
+                    <td> </td>
+                </tr>
+                }
+
+            <tr id="addform" hidden="hidden">
+                <td colspan="6" align="center" class="w-100 align-content-between">
+                    <EditForm Model="@subscription" OnValidSubmit="OnAddSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <InputText id="name" @bind-Value="subscription.Name" />
+
+                        <InputText id="company" @bind-Value="subscription.Company" />
+
+                        <InputNumber id="price" @bind-Value="subscription.Price" />
+
+                        <InputNumber id="renewal" @bind-Value="subscription.RenewalDay" />
+
+                        <input class="btn btn-primary" value="Add" type="submit" />
+
+
+                    </EditForm>
+                </td>
+
+            </tr>
+            </tbody>
+        </table>
+    }
+</div>
+
+
+
 
 @code {
 
+    Subscription[] allSubscriptions { get; set; }
+
+    private Subscription subscription = new Subscription();
+    private HttpResponseMessage response = null;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAllSubscriptions();
+    }
+
+    private async Task GetAllSubscriptions()
+    {
+        allSubscriptions = await Http.GetFromJsonAsync<Subscription[]>("/api/Subscription");
+        StateHasChanged();
+    }
+
+    private async Task OnAddSubmit()
+    {
+        subscription.DateCreated = DateTime.UtcNow;
+        Console.WriteLine(subscription.DateCreated);
+
+        response = await Http.PostAsJsonAsync("/api/Subscription", subscription);
+
+        if (response.IsSuccessStatusCode)
+            subscription = new Subscription();
+        await GetAllSubscriptions();
+    }
 }
